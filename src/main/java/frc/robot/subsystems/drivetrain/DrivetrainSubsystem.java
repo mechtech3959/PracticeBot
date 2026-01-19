@@ -1,5 +1,11 @@
 package frc.robot.subsystems.drivetrain;
 
-public class DrivetrainSubsystem {
-    
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public class DrivetrainSubsystem extends SubsystemBase {
+
+    @Override
+    public void periodic() {
+    }
+
 }
