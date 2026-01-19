@@ -1,16 +1,19 @@
 package frc.robot.subsystems.drivetrain;
 
+import org.littletonrobotics.junction.AutoLog;
+
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.RobotState;
 
 public interface DrivetrainIO {
 
+    @AutoLog
     public class DrivetrainIOInputs {
         public Pose2d Pose = new Pose2d();
         public ChassisSpeeds Speeds = new ChassisSpeeds();
@@ -37,7 +40,8 @@ public interface DrivetrainIO {
 
         }
     }
-        class ModuleIOInputs {
+    @AutoLog
+    class ModuleIOInputs {
         public double driveSupplyCurrentAmps = 0.0;
         public double driveStatorCurrentAmps = 0.0;
         public double driveAppliedVolts = 0.0;
@@ -48,7 +52,9 @@ public interface DrivetrainIO {
         public double steerAppliedVolts = 0.0;
         public double steerTemperature = 0.0;
     }
-
+    default void registerDrivetrainTelemetry(DrivetrainIOInputs inputs){}
+    default void updateDrivetrainData(DrivetrainIOInputs inputs){}
+    default void updateModuleData(ModuleIOInputs inputs){}
     default void configure() {
     }
 
@@ -59,6 +65,9 @@ public interface DrivetrainIO {
     }
 
     default void resetPose(Pose2d pose) {
+    }
+
+    default void setSwerveState(SwerveRequest req) {
     }
 
     default void simulationInit() {
