@@ -22,6 +22,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.QuestNavSubsystem;
 import frc.robot.subsystems.drivetrain.DrivetrainIOCTRE;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
+import frc.robot.subsystems.drivetrain.DrivetrainSubsystem.SwerveState;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -41,6 +42,7 @@ public class RobotContainer {
     public final DrivetrainSubsystem Drivetrain = new DrivetrainSubsystem(new DrivetrainIOCTRE(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft,TunerConstants.FrontRight,TunerConstants.BackLeft,TunerConstants.BackRight), joystick);
    // public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final QuestNavSubsystem questNav = new QuestNavSubsystem();
+    
    // private final ChassisSpeeds d = drivetrain.calculateSpeedsBasedOnJoystickInputs(joystick);
 
     public RobotContainer() {
@@ -89,6 +91,11 @@ public class RobotContainer {
    //     joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
      //   drivetrain.registerTelemetry(logger::telemeterize);
+     joystick.a().onChange( Commands.runOnce(()->{Drivetrain.changeState(SwerveState.Heading);}));
+          joystick.b().onChange( Commands.runOnce(()->{Drivetrain.changeState(SwerveState.TeliOp);}));
+          joystick.x().onChange( Commands.runOnce(()->{Drivetrain.changeState(SwerveState.Brake);}));
+          joystick.y().onChange( Commands.runOnce(()->{Drivetrain.changeState(SwerveState.Slow);}));
+
 
    //  Drivetrain.teliopDrive();
     }

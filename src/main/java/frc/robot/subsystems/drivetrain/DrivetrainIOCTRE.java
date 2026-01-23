@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drivetrain;
 
+import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -42,6 +43,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     @Override
     public void updateDrivetrainData(DrivetrainIOInputs inputs) {
         inputs.logState(getState());
+        
     }
 
     @Override
@@ -57,5 +59,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     @Override
     public void resetPose(Pose2d Pose) {
         this.resetPose(Pose);
+    }
+    @Override 
+    public void setPoseEstValues(Pose2d pose, double timestamp){
+        this.addVisionMeasurement(pose, timestamp);
     }
 }

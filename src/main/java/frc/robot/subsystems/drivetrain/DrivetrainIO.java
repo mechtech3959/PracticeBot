@@ -2,6 +2,7 @@ package frc.robot.subsystems.drivetrain;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -40,6 +41,7 @@ public interface DrivetrainIO {
 
         }
     }
+
     @AutoLog
     class ModuleIOInputs {
         public double driveSupplyCurrentAmps = 0.0;
@@ -51,10 +53,18 @@ public interface DrivetrainIO {
         public double steerStatorCurrentAmps = 0.0;
         public double steerAppliedVolts = 0.0;
         public double steerTemperature = 0.0;
+        public void updateModuleData(){}
     }
-    default void registerDrivetrainTelemetry(DrivetrainIOInputs inputs){}
-    default void updateDrivetrainData(DrivetrainIOInputs inputs){}
-    default void updateModuleData(ModuleIOInputs inputs){}
+
+    default void registerDrivetrainTelemetry(DrivetrainIOInputs inputs) {
+    }
+
+    default void updateDrivetrainData(DrivetrainIOInputs inputs) {
+    }
+
+    default void updateModuleData(ModuleIOInputs inputs) {
+    }
+
     default void configure() {
     }
 
@@ -68,6 +78,9 @@ public interface DrivetrainIO {
     }
 
     default void setSwerveState(SwerveRequest req) {
+    }
+
+    default void setPoseEstValues(Pose2d pose, double timestamp) {
     }
 
     default void simulationInit() {

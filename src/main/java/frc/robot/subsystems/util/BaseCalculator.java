@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Pose2d;
 
 public class BaseCalculator {
-    public Rotation2d angleToAlign(Pose2d position) {
+    public static Rotation2d angleToAlign(Pose2d position) {
         double y1 = FieldBasedConstants.isBlueAlliance() ? FieldBasedConstants.blueBase.getY()
                 : FieldBasedConstants.redBase.getY();
         double x1 = FieldBasedConstants.isBlueAlliance() ? FieldBasedConstants.blueBase.getX()
