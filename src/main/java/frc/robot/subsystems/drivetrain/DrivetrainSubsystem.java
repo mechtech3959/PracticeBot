@@ -7,10 +7,7 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.utility.WheelForceCalculator.Feedforwards;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -36,7 +33,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
         VisionHeading,
 
     }
-
+    public enum OutputMode{
+        Fast,
+        Slow,
+        Ramp
+    }
     private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withHeadingPID(3, 0, 0)
             .withDriveRequestType(SwerveModule.DriveRequestType.Velocity);
@@ -59,6 +60,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     }
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
+        
         if (DriverStation.getAlliance().isEmpty()) {
             return new ChassisSpeeds(0, 0, 0);
         }
