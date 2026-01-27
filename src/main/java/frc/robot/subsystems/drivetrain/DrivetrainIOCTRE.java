@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drivetrain;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -7,6 +8,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -17,7 +19,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.util.FieldBasedConstants;
 
 // Inspired by FRC 2910 
-public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
+public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder> implements DrivetrainIO {
 
     private SwerveRequest.ApplyRobotSpeeds pathApplyingRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
@@ -46,8 +48,14 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     @Override
     public void updateDrivetrainData(DrivetrainIOInputs inputs) {
-        inputs.logState(getState());
+        var state = this.getStateCopy();
+        state.Speeds = ChassisSpeeds.fromRobotRelativeSpeeds(state.Speeds, state.Pose.getRotation());
+        inputs.logState(state);
+    }
 
+    @Override
+    public SwerveModule<TalonFX, TalonFX, CANcoder> getSwerveModule(int index) {
+        return this.getModule(index);
     }
 
     @Override

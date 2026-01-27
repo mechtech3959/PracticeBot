@@ -3,7 +3,10 @@ package frc.robot.subsystems.drivetrain;
 import org.littletonrobotics.junction.AutoLog;
 
 import com.ctre.phoenix6.Timestamp;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,12 +19,12 @@ public interface DrivetrainIO {
 
     @AutoLog
     public class DrivetrainIOInputs {
-        public Pose2d Pose = new Pose2d();
-        public ChassisSpeeds Speeds = new ChassisSpeeds();
+        public Pose2d Pose = new Pose2d(0, 0, new Rotation2d(0));
+        public ChassisSpeeds Speeds = new ChassisSpeeds(0, 0, 0);
         public SwerveModuleState[] ModuleStates;
         public SwerveModuleState[] ModuleTargets;
         public SwerveModulePosition[] ModulePositions;
-        public Rotation2d RawHeading = new Rotation2d();
+        public Rotation2d RawHeading = new Rotation2d(0);
         public double Timestamp;
         public double OdometryPeriod;
         public int SuccessfulDaqs;
@@ -42,27 +45,14 @@ public interface DrivetrainIO {
         }
     }
 
-    @AutoLog
-    class ModuleIOInputs {
-        public double driveSupplyCurrentAmps = 0.0;
-        public double driveStatorCurrentAmps = 0.0;
-        public double driveAppliedVolts = 0.0;
-        public double driveTemperature = 0.0;
-
-        public double steerSupplyCurrentAmps = 0.0;
-        public double steerStatorCurrentAmps = 0.0;
-        public double steerAppliedVolts = 0.0;
-        public double steerTemperature = 0.0;
-        public void updateModuleData(){}
-    }
-
     default void registerDrivetrainTelemetry(DrivetrainIOInputs inputs) {
     }
 
     default void updateDrivetrainData(DrivetrainIOInputs inputs) {
     }
 
-    default void updateModuleData(ModuleIOInputs inputs) {
+    default SwerveModule<TalonFX, TalonFX, CANcoder> getSwerveModule(int index) {
+        return new SwerveModule<>(null, null, null, null, null, index, index);
     }
 
     default void configure() {
@@ -73,7 +63,8 @@ public interface DrivetrainIO {
 
     default void resetHeading(Rotation2d heading) {
     }
-    default Pose2d getPose(){
+
+    default Pose2d getPose() {
         return new Pose2d();
     }
 
@@ -85,8 +76,13 @@ public interface DrivetrainIO {
 
     default void setPoseEstValues(Pose2d pose, double timestamp) {
     }
-    default ChassisSpeeds getRobotRelSpeed(){return new ChassisSpeeds();}
-    default void autoPath(ChassisSpeeds speeds){};
+
+    default ChassisSpeeds getRobotRelSpeed() {
+        return new ChassisSpeeds();
+    }
+
+    default void autoPath(ChassisSpeeds speeds) {
+    };
 
     default void simulationInit() {
     }

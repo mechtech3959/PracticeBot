@@ -8,7 +8,6 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.utility.WheelForceCalculator.Feedforwards;
 
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -20,6 +19,8 @@ import frc.robot.subsystems.util.BaseCalculator;
 import frc.robot.subsystems.util.FieldBasedConstants;
 
 import frc.robot.subsystems.drivetrain.DrivetrainIO;
+import frc.robot.subsystems.drivetrain.DrivetrainIO.DrivetrainIOInputs;
+import frc.robot.subsystems.drivetrain.ModuleIO;
 
 public class DrivetrainSubsystem extends SubsystemBase {
 
@@ -33,23 +34,31 @@ public class DrivetrainSubsystem extends SubsystemBase {
         VisionHeading,
 
     }
-    public enum OutputMode{
+
+    public enum OutputMode {
         Fast,
         Slow,
         Ramp
     }
+
     private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withHeadingPID(3, 0, 0)
             .withDriveRequestType(SwerveModule.DriveRequestType.Velocity);
     private SwerveState currentDriveState = SwerveState.TeliOp;
+    private OutputMode selectedSpeed = OutputMode.Fast;
     private CommandXboxController controller;
     private DrivetrainIO io = new DrivetrainIO() {
     };
     final DrivetrainIOInputsAutoLogged swerveInputs = new DrivetrainIOInputsAutoLogged();
-    ModuleIOInputsAutoLogged frontLeftInputs = new ModuleIOInputsAutoLogged();
-    ModuleIOInputsAutoLogged frontRightInputs = new ModuleIOInputsAutoLogged();
-    ModuleIOInputsAutoLogged backLeftInputs = new ModuleIOInputsAutoLogged();
-    ModuleIOInputsAutoLogged backRightInputs = new ModuleIOInputsAutoLogged();
+
+    private final ModuleIOInputsAutoLogged[] moduleInputs = new ModuleIOInputsAutoLogged[] {
+            new ModuleIOInputsAutoLogged(), // FL (Index 0)
+            new ModuleIOInputsAutoLogged(), // FR (Index 1)
+            new ModuleIOInputsAutoLogged(), // BL (Index 2)
+            new ModuleIOInputsAutoLogged() // BR (Index 3)
+    };
+
+    private final ModuleIO[] modules = new ModuleIO[4];
 
     double maxSpeed;
     double maxAngSpeed;
@@ -58,34 +67,79 @@ public class DrivetrainSubsystem extends SubsystemBase {
         this.io = io;
         this.controller = controller;
 
+        for (int i = 0; i < 4; i++) {
+            modules[i] = new ModuleIOCTRE(io.getSwerveModule(i));
+            modules[i].updateInputs(moduleInputs[i]);
+
+        }
+
+        io.registerDrivetrainTelemetry(swerveInputs);
+
     }
+
+    // TODO: Decide what im going to do with this / find out if it works and if it
+    // is worth it to combine code or seperate
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
-        
+
         if (DriverStation.getAlliance().isEmpty()) {
             return new ChassisSpeeds(0, 0, 0);
         }
+        switch (selectedSpeed) {
+            case Fast:
+                double xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
+                double yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
+                double angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
+                Logger.recordOutput("xMag", xMagnitude);
+                //
+                // xMagnitude = Math.copySign(xMagnitude * xMagnitude, xMagnitude);
+                // yMagnitude = Math.copySign(yMagnitude * yMagnitude, yMagnitude);
+                angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
 
-        double xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
-        double yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
-        double angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
-        Logger.recordOutput("xMag", xMagnitude);
-        //
-        // xMagnitude = Math.copySign(xMagnitude * xMagnitude, xMagnitude);
-        // yMagnitude = Math.copySign(yMagnitude * yMagnitude, yMagnitude);
-        angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
+                double xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * 4.5 : xMagnitude * 4.5)
+                        * 1.0;
+                double yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * 4.5 : yMagnitude * 4.5)
+                        * 1.0;
+                double angularVelocity = angularMagnitude * 1.75 * 1.75;
 
-        double xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * 4.5 : xMagnitude * 4.5)
-                * 1.0;
-        double yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * 4.5 : yMagnitude * 4.5)
-                * 1.0;
-        double angularVelocity = angularMagnitude * 1.75 * 1.75;
+                Rotation2d skewCompensationFactor = Rotation2d
+                        .fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
 
-        Rotation2d skewCompensationFactor = Rotation2d.fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
+                return ChassisSpeeds.fromRobotRelativeSpeeds(
+                        ChassisSpeeds.fromFieldRelativeSpeeds(
+                                new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity),
+                                swerveInputs.Pose.getRotation()),
+                        swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
 
-        return ChassisSpeeds.fromRobotRelativeSpeeds(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                        new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity), swerveInputs.Pose.getRotation()),
-                swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
+            case Slow:
+                xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
+                yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
+                angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
+                Logger.recordOutput("xMag", xMagnitude);
+                //
+                // xMagnitude = Math.copySign(xMagnitude * xMagnitude, xMagnitude);
+                // yMagnitude = Math.copySign(yMagnitude * yMagnitude, yMagnitude);
+                angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
+
+                xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * 2 : xMagnitude * 2)
+                        * 0.8;
+                yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * 2 : yMagnitude * 2)
+                        * 0.8;
+                angularVelocity = angularMagnitude * 1 * 1;
+
+                skewCompensationFactor = Rotation2d.fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
+
+                return ChassisSpeeds.fromRobotRelativeSpeeds(
+                        ChassisSpeeds.fromFieldRelativeSpeeds(
+                                new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity),
+                                swerveInputs.Pose.getRotation()),
+                        swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
+            case Ramp:
+                return new ChassisSpeeds(0, 0, 0);
+
+            default:
+                return new ChassisSpeeds(0, 0, 0);
+
+        }
     }
 
     private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
@@ -188,10 +242,16 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void periodic() {
 
         io.updateDrivetrainData(swerveInputs);
-        Logger.processInputs(getName(), swerveInputs);
+        Logger.processInputs(getName() + "/Swerve", swerveInputs);
         // teliopDrive();
         // headingDrive();
         applyState();
-    }
 
+        for (int i = 0; i < 4; i++) {
+            // Read fresh data from hardware
+            modules[i].updateInputs(moduleInputs[i]);
+            // Send to dashboard
+            Logger.processInputs("Drive/Module " + i, moduleInputs[i]);
+        }
+    }
 }

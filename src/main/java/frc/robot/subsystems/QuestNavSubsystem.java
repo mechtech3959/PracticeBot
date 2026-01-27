@@ -31,7 +31,8 @@ public class QuestNavSubsystem extends SubsystemBase {
                 new Rotation2d((FieldBasedConstants.isBlueAlliance()) ? 0 : 180))));
 
     }
-    public void resetPose(Pose2d pose){
+
+    public void resetPose(Pose2d pose) {
         questNav.setPose(new Pose3d(pose));
     }
 
