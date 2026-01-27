@@ -73,6 +73,9 @@ public interface DrivetrainIO {
 
     default void resetHeading(Rotation2d heading) {
     }
+    default Pose2d getPose(){
+        return new Pose2d();
+    }
 
     default void resetPose(Pose2d pose) {
     }
@@ -82,6 +85,8 @@ public interface DrivetrainIO {
 
     default void setPoseEstValues(Pose2d pose, double timestamp) {
     }
+    default ChassisSpeeds getRobotRelSpeed(){return new ChassisSpeeds();}
+    default void autoPath(ChassisSpeeds speeds){};
 
     default void simulationInit() {
     }

@@ -6,6 +6,11 @@ import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.utility.WheelForceCalculator.Feedforwards;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -32,7 +37,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     }
 
-    private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle().withHeadingPID(3, 0, 0)
+    private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
+            .withHeadingPID(3, 0, 0)
             .withDriveRequestType(SwerveModule.DriveRequestType.Velocity);
     private SwerveState currentDriveState = SwerveState.TeliOp;
     private CommandXboxController controller;
@@ -52,7 +58,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
         this.controller = controller;
 
     }
-
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
         if (DriverStation.getAlliance().isEmpty()) {
             return new ChassisSpeeds(0, 0, 0);
@@ -80,7 +85,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
                         new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity), swerveInputs.Pose.getRotation()),
                 swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
     }
-private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
+
+    private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
         if (DriverStation.getAlliance().isEmpty()) {
             return new ChassisSpeeds(0, 0, 0);
         }
@@ -107,6 +113,7 @@ private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
                         new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity), swerveInputs.Pose.getRotation()),
                 swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
     }
+
     public void teliopDrive() {
         io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds()
                 .withSpeeds(calculateSpeedsBasedOnJoystickInputs())
@@ -126,10 +133,15 @@ private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
                 .withVelocityY(calculateSpeedsBasedOnJoystickInputs().vyMetersPerSecond));
 
     }
-    public void slowDrive(){
-         io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds()
+
+    public void slowDrive() {
+        io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds()
                 .withSpeeds(slowcalculateSpeedsBasedOnJoystickInputs())
                 .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage));
+    }
+
+    public void autoPath(ChassisSpeeds speeds) {
+        io.setSwerveState(new SwerveRequest.ApplyRobotSpeeds().withSpeeds(speeds));
     }
 
     public void visionHeadingDrive() {
@@ -150,7 +162,7 @@ private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
                 teliopDrive();
                 break;
             case Slow:
-slowDrive();
+                slowDrive();
                 break;
             case Heading:
                 headingDrive();
@@ -175,8 +187,8 @@ slowDrive();
 
         io.updateDrivetrainData(swerveInputs);
         Logger.processInputs(getName(), swerveInputs);
-       //teliopDrive();
-      // headingDrive(); 
+        // teliopDrive();
+        // headingDrive();
         applyState();
     }
 
