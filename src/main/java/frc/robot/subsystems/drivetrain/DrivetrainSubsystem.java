@@ -1,26 +1,18 @@
 package frc.robot.subsystems.drivetrain;
 
-import java.io.Console;
-
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.ctre.phoenix6.swerve.utility.WheelForceCalculator.Feedforwards;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.util.BaseCalculator;
 import frc.robot.subsystems.util.FieldBasedConstants;
-
-import frc.robot.subsystems.drivetrain.DrivetrainIO;
-import frc.robot.subsystems.drivetrain.DrivetrainIO.DrivetrainIOInputs;
-import frc.robot.subsystems.drivetrain.ModuleIO;
 
 public class DrivetrainSubsystem extends SubsystemBase {
 
@@ -80,8 +72,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
     // TODO: Decide what im going to do with this / find out if it works and if it
     // is worth it to combine code or seperate
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
-
-        if (DriverStation.getAlliance().isEmpty()) {
+// was .isEmpty() but threw error for some reason
+        if (!DriverStation.getAlliance().isPresent()) {
             return new ChassisSpeeds(0, 0, 0);
         }
         switch (selectedSpeed) {
@@ -143,7 +135,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
-        if (DriverStation.getAlliance().isEmpty()) {
+        //was .isEmpty() but threw error for some reason
+        if (!DriverStation.getAlliance().isPresent()) {
             return new ChassisSpeeds(0, 0, 0);
         }
 
