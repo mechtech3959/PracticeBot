@@ -5,7 +5,10 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -19,7 +22,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public enum SwerveState {
         Disabled,
         Brake,
-        Pathing,
+        ChoreoTrajectory,
         TeliOp,
         Slow,
         Heading,
@@ -36,13 +39,18 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withHeadingPID(3, 0, 0)
             .withDriveRequestType(SwerveModule.DriveRequestType.Velocity);
+    private final PIDController autoXController = new PIDController(7, 0, 0);
+    private final PIDController autoYController = new PIDController(7, 0, 0);
+    private final PIDController autoHeadingController = new PIDController(7, 0, 0);
+
+    private final PIDController autoDriveController = new PIDController(3.0, 0, 0.1);
+
     private SwerveState currentDriveState = SwerveState.TeliOp;
     private OutputMode selectedSpeed = OutputMode.Fast;
     private CommandXboxController controller;
     private DrivetrainIO io = new DrivetrainIO() {
     };
     final DrivetrainIOInputsAutoLogged swerveInputs = new DrivetrainIOInputsAutoLogged();
-
     private final ModuleIOInputsAutoLogged[] moduleInputs = new ModuleIOInputsAutoLogged[] {
             new ModuleIOInputsAutoLogged(), // FL (Index 0)
             new ModuleIOInputsAutoLogged(), // FR (Index 1)
@@ -67,12 +75,14 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
         io.registerDrivetrainTelemetry(swerveInputs);
 
+        autoHeadingController.enableContinuousInput(-Math.PI, Math.PI);
+
     }
 
     // TODO: Decide what im going to do with this / find out if it works and if it
     // is worth it to combine code or seperate
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
-// was .isEmpty() but threw error for some reason
+        // was .isEmpty() but threw error for some reason
         if (!DriverStation.getAlliance().isPresent()) {
             return new ChassisSpeeds(0, 0, 0);
         }
@@ -135,7 +145,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
-        //was .isEmpty() but threw error for some reason
+        // was .isEmpty() but threw error for some reason
         if (!DriverStation.getAlliance().isPresent()) {
             return new ChassisSpeeds(0, 0, 0);
         }
@@ -161,6 +171,20 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity), swerveInputs.Pose.getRotation()),
                 swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
+    }
+
+    public void followTrajectory(SwerveSample sample) {
+        // Get the current pose of the robot
+        Pose2d pose = io.getPose();
+
+        // Generate the next speeds for the robot
+        ChassisSpeeds speeds = new ChassisSpeeds(
+                sample.vx + autoXController.calculate(pose.getX(), sample.x),
+                sample.vy + autoYController.calculate(pose.getY(), sample.y),
+                sample.omega + autoHeadingController.calculate(pose.getRotation().getRadians(), sample.heading));
+
+        // Apply the generated speeds
+        io.autoPath(speeds);
     }
 
     public void teliopDrive() {
@@ -189,9 +213,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage));
     }
 
-    public void autoPath(ChassisSpeeds speeds) {
-        io.setSwerveState(new SwerveRequest.ApplyRobotSpeeds().withSpeeds(speeds));
-    }
+    
 
     public void visionHeadingDrive() {
     }
@@ -204,7 +226,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
             case Brake:
                 brake();
                 break;
-            case Pathing:
+            case ChoreoTrajectory:
 
                 break;
             case TeliOp:

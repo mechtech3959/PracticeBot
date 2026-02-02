@@ -1,7 +1,5 @@
 package frc.robot.subsystems.drivetrain;
 
-import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -15,17 +13,13 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.util.FieldBasedConstants;
 
 // Inspired by FRC 2910 
 public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder> implements DrivetrainIO {
 
-    private SwerveRequest.ApplyRobotSpeeds pathApplyingRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
-
-    @SuppressWarnings("unchecked")
     public DrivetrainIOCTRE(SwerveDrivetrainConstants constants,
-            SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>... moduleConstants) {
+            @SuppressWarnings("unchecked") SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>... moduleConstants) {
 
         super(TalonFX::new, TalonFX::new, CANcoder::new, constants, moduleConstants);
 
@@ -33,7 +27,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void registerDrivetrainTelemetry(DrivetrainIOInputs inputs) {
         this.registerTelemetry(state -> {
@@ -85,7 +78,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
     }
 
     @Override
-    public void resetPose(Pose2d Pose) {
+    public void resetRobotPose(Pose2d Pose) {
         this.resetPose(Pose);
     }
 

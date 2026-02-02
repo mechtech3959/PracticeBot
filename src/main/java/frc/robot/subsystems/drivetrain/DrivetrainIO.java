@@ -2,7 +2,6 @@ package frc.robot.subsystems.drivetrain;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
@@ -68,7 +67,7 @@ public interface DrivetrainIO {
         return new Pose2d();
     }
 
-    default void resetPose(Pose2d pose) {
+    default void resetRobotPose(Pose2d pose) {
     }
 
     default void setSwerveState(SwerveRequest req) {
