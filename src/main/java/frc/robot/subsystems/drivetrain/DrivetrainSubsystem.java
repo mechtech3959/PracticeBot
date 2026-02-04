@@ -42,7 +42,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private final PIDController autoXController = new PIDController(7, 0, 0);
     private final PIDController autoYController = new PIDController(7, 0, 0);
     private final PIDController autoHeadingController = new PIDController(7, 0, 0);
-
+    private SwerveSample trajectorySample;
     private final PIDController autoDriveController = new PIDController(3.0, 0, 0.1);
 
     private SwerveState currentDriveState = SwerveState.TeliOp;
@@ -173,6 +173,13 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
     }
 
+    public Pose2d getPose() {
+        return io.getPose();
+    }
+    public void resetPose(Pose2d pose) {
+        io.resetRobotPose(pose);
+    }
+
     public void followTrajectory(SwerveSample sample) {
         // Get the current pose of the robot
         Pose2d pose = io.getPose();
@@ -184,7 +191,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 sample.omega + autoHeadingController.calculate(pose.getRotation().getRadians(), sample.heading));
 
         // Apply the generated speeds
-        io.autoPath(speeds);
+        io.trajPath(speeds);
     }
 
     public void teliopDrive() {
@@ -227,7 +234,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 brake();
                 break;
             case ChoreoTrajectory:
-
+                followTrajectory(trajectorySample);
                 break;
             case TeliOp:
                 teliopDrive();
@@ -252,6 +259,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void changeState(SwerveState wanted) {
         currentDriveState = wanted;
     }
+    public void stageTrajectory(SwerveSample sample) {
+        trajectorySample = sample;
+        currentDriveState = SwerveState.ChoreoTrajectory;
+    }
+
 
     @Override
     public void periodic() {

@@ -80,7 +80,7 @@ public interface DrivetrainIO {
         return new ChassisSpeeds();
     }
 
-    default void autoPath(ChassisSpeeds speeds) {
+    default void trajPath(ChassisSpeeds speeds) {
     };
 
     default void simulationInit() {

@@ -16,6 +16,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.autos.Auto;
+import choreo.auto.AutoRoutine;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -45,6 +47,9 @@ public class RobotContainer {
             new DrivetrainIOCTRE(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft,
                     TunerConstants.FrontRight, TunerConstants.BackLeft, TunerConstants.BackRight),
             joystick);
+            Auto auto = new Auto(Drivetrain);
+            AutoRoutine routine = auto.testRoutine();
+            
     // public final CommandSwerveDrivetrain drivetrain =
     // TunerConstants.createDrivetrain();
     public final QuestNavSubsystem questNav = new QuestNavSubsystem();
@@ -54,6 +59,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         configureBindings();
+        
     }
 
     private void configureBindings() {
@@ -141,6 +147,7 @@ public class RobotContainer {
          * 
          * );
          */
-        return Commands.none();
+      return  routine.cmd();
+        
     }
 }

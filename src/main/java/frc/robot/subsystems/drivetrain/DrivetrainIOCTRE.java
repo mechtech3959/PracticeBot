@@ -68,7 +68,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
     }
 
     @Override
-    public void autoPath(ChassisSpeeds speeds) {
+    public void trajPath(ChassisSpeeds speeds) {
         this.setControl(new SwerveRequest.ApplyRobotSpeeds().withSpeeds(speeds));
     }
 

@@ -9,18 +9,21 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.util.FieldBasedConstants;
-import gg.questnav.questnav.*;
+import gg.questnav.questnav.PoseFrame;
+import gg.questnav.questnav.QuestNav;
 
 public class QuestNavSubsystem extends SubsystemBase {
     private QuestNav questNav;
 
     public QuestNavSubsystem() {
-
+        
         questNav = new QuestNav();
-        Transform3d ROBOT_TO_QUEST = new Transform3d(0.0028, 0.008, 0.05, new Rotation3d(new Rotation2d(0)));
+        
+        Transform3d ROBOT_TO_QUEST = new Transform3d(0.022, 0.152, 0.41, new Rotation3d(new Rotation2d(-90)));
         Pose3d questPose = new Pose3d(0, 0, 0, new Rotation3d(new Rotation2d(0)));
         // Transform by the mount pose to get your robot pose
-        Pose3d robotPose = questPose.transformBy(ROBOT_TO_QUEST);
+     Pose3d robotPose = questPose.transformBy(ROBOT_TO_QUEST.inverse());
+
         questNav.setPose(robotPose);
 
     }
@@ -40,7 +43,7 @@ public class QuestNavSubsystem extends SubsystemBase {
     public void periodic() {
 
         questNav.commandPeriodic();
-        Transform3d ROBOT_TO_QUEST = new Transform3d(0.0028, 0.008, 0.05, new Rotation3d(new Rotation2d(-90)));
+        Transform3d ROBOT_TO_QUEST = new Transform3d(0.022, 0.152, 0.41, new Rotation3d(new Rotation2d(-90)));
         PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
 
         // Loop over the pose data frames and send them to the pose estimator
