@@ -2,11 +2,13 @@ package frc.robot.subsystems.drivetrain;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,6 +18,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.util.BaseCalculator;
 import frc.robot.subsystems.util.FieldBasedConstants;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 
 public class DrivetrainSubsystem extends SubsystemBase {
 
@@ -76,9 +80,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
         io.registerDrivetrainTelemetry(swerveInputs);
 
         autoHeadingController.enableContinuousInput(-Math.PI, Math.PI);
-
     }
+    public void poseEst(Pose2d pose,double  time,Matrix<N3,N1> dev ){
 
+        io.setPoseEstValues(pose, time,dev);
+    }
     // TODO: Decide what im going to do with this / find out if it works and if it
     // is worth it to combine code or seperate
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {

@@ -4,23 +4,18 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
-
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import choreo.auto.AutoRoutine;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.autos.Auto;
-import choreo.auto.AutoRoutine;
-
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.QuestNavSubsystem;
 import frc.robot.subsystems.drivetrain.DrivetrainIOCTRE;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
@@ -47,15 +42,18 @@ public class RobotContainer {
             new DrivetrainIOCTRE(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft,
                     TunerConstants.FrontRight, TunerConstants.BackLeft, TunerConstants.BackRight),
             joystick);
-            Auto auto = new Auto(Drivetrain);
-            AutoRoutine routine = auto.testRoutine();
+            Auto autom = new Auto(Drivetrain);
+            AutoRoutine testR =   autom.testRoutine();
+            Command    test = autom.setAutoRoutine();
+
             
     // public final CommandSwerveDrivetrain drivetrain =
     // TunerConstants.createDrivetrain();
-    public final QuestNavSubsystem questNav = new QuestNavSubsystem();
+    public final QuestNavSubsystem questNav = new QuestNavSubsystem(Drivetrain);
 
     // private final ChassisSpeeds d =
     // drivetrain.calculateSpeedsBasedOnJoystickInputs(joystick);
+
 
     public RobotContainer() {
         configureBindings();
@@ -147,7 +145,7 @@ public class RobotContainer {
          * 
          * );
          */
-      return  routine.cmd();
+      return  test;
         
     }
 }
