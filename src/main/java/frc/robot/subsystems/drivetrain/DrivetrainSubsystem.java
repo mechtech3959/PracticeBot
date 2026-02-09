@@ -81,10 +81,12 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
         autoHeadingController.enableContinuousInput(-Math.PI, Math.PI);
     }
-    public void poseEst(Pose2d pose,double  time,Matrix<N3,N1> dev ){
 
-        io.setPoseEstValues(pose, time,dev);
+    public void poseEst(Pose2d pose, double time, Matrix<N3, N1> dev) {
+
+        io.setPoseEstValues(pose, time, dev);
     }
+
     // TODO: Decide what im going to do with this / find out if it works and if it
     // is worth it to combine code or seperate
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
@@ -182,6 +184,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public Pose2d getPose() {
         return io.getPose();
     }
+
     public void resetPose(Pose2d pose) {
         io.resetRobotPose(pose);
     }
@@ -197,7 +200,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 sample.omega + autoHeadingController.calculate(pose.getRotation().getRadians(), sample.heading));
 
         // Apply the generated speeds
-        io.trajPath(speeds);
+        // io.trajPath(speeds);
+        io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds().withSpeeds(speeds)
+                .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                .withWheelForceFeedforwardsY(sample.moduleForcesY()));
     }
 
     public void teliopDrive() {
@@ -225,8 +231,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 .withSpeeds(slowcalculateSpeedsBasedOnJoystickInputs())
                 .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage));
     }
-
-    
 
     public void visionHeadingDrive() {
     }
@@ -265,6 +269,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void changeState(SwerveState wanted) {
         currentDriveState = wanted;
     }
+
     public void stageTrajectory(SwerveSample sample) {
         trajectorySample = sample;
         currentDriveState = SwerveState.ChoreoTrajectory;
@@ -272,7 +277,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     public Rotation2d getHeading() {
         return swerveInputs.Pose.getRotation();
-    }   
+    }
+
     @Override
     public void periodic() {
 
@@ -282,23 +288,25 @@ public class DrivetrainSubsystem extends SubsystemBase {
         // headingDrive();
         applyState();
 
-              modules[0].updateInputs(moduleInputs[0]);
-              modules[1].updateInputs(moduleInputs[1]);
-              modules[2].updateInputs(moduleInputs[2]);
-              modules[3].updateInputs(moduleInputs[3]);
+        modules[0].updateInputs(moduleInputs[0]);
+        modules[1].updateInputs(moduleInputs[1]);
+        modules[2].updateInputs(moduleInputs[2]);
+        modules[3].updateInputs(moduleInputs[3]);
 
-            // Send to dashboard
-            Logger.processInputs("Drive/Module 0", moduleInputs[0]);      
-            // Send to dashboard
-            Logger.processInputs("Drive/Module 1", moduleInputs[1]);      
-            Logger.processInputs("Drive/Module  2", moduleInputs[2]);     
-            // Send to dashboard
-            Logger.processInputs("Drive/Module 3", moduleInputs[3]);
-       /*  for (int i = 0; i < 4; i++) {
-            // Read fresh data from hardware
-            modules[i].updateInputs(moduleInputs[i]);
-            // Send to dashboard
-            Logger.processInputs("Drive/Module " + i, moduleInputs[i]);
-        }*/
+        // Send to dashboard
+        Logger.processInputs("Drive/Module 0", moduleInputs[0]);
+        // Send to dashboard
+        Logger.processInputs("Drive/Module 1", moduleInputs[1]);
+        Logger.processInputs("Drive/Module  2", moduleInputs[2]);
+        // Send to dashboard
+        Logger.processInputs("Drive/Module 3", moduleInputs[3]);
+        /*
+         * for (int i = 0; i < 4; i++) {
+         * // Read fresh data from hardware
+         * modules[i].updateInputs(moduleInputs[i]);
+         * // Send to dashboard
+         * Logger.processInputs("Drive/Module " + i, moduleInputs[i]);
+         * }
+         */
     }
 }

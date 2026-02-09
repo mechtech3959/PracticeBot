@@ -1,19 +1,17 @@
 package frc.robot.autos;
 
-import java.util.Set;
-
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
 
 public class Auto {
     private DrivetrainSubsystem drivetrain;
     private AutoFactory autoFactory;
     private AutoRoutine routine;
+    
 
     public Auto(DrivetrainSubsystem drivetrain) {
         this.drivetrain = drivetrain;
