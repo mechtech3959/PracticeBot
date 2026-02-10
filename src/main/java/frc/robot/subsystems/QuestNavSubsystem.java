@@ -13,7 +13,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
-import frc.robot.subsystems.util.FieldBasedConstants;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
 
@@ -21,63 +20,74 @@ public class QuestNavSubsystem extends SubsystemBase {
     public Matrix<N3, N1> QUESTNAV_STD_DEVS = VecBuilder.fill(
             0.02, // Trust down to 2cm in X direction
             0.02, // Trust down to 2cm in Y direction
-            0.035 // Trust down to 2 degrees rotational
+            Math.toRadians(2) // Trust down to 2 degrees rotational
     );
-    // 0.41
+
+    private static final Transform3d ROBOT_TO_QUEST = new Transform3d(
+            0.022, 0.152, 0.041,
+            new Rotation3d(0, 0, Math.toRadians(-90)) // Quest mounted 90° left
+    );
+
     private QuestNav questNav;
-    public Transform3d ROBOT_TO_QUEST;// = new Transform3d(0.022, 0.152, 0.041, new Rotation3d(new Rotation2d(-90)));
     private DrivetrainSubsystem drive;
-    public Pose3d robotPose;
 
     public QuestNavSubsystem(DrivetrainSubsystem drive) {
-
         this.drive = drive;
-        ROBOT_TO_QUEST = new Transform3d(0.022, 0.152, 0.041,
-                new Rotation3d(new Rotation2d(-90)));
         questNav = new QuestNav();
-
-        Pose3d questPose = new Pose3d(0, 0, 0, new Rotation3d(new Rotation2d(0)));
-        // Transform by the mount pose to get your robot pose
-        robotPose = questPose.plus(ROBOT_TO_QUEST);
-
-        questNav.setPose(robotPose);
-
     }
 
     public void trackingStart() {
-
-        questNav.setPose(new Pose3d(0, 0, 0, new Rotation3d(
-                new Rotation2d((FieldBasedConstants.isBlueAlliance()) ? 0 : 180))));
-
+        // Start robot at origin - you'll call setRobotPose() with actual position later
+        Pose2d robotStartPose = new Pose2d(0, 0, new Rotation2d(0));
+        setRobotPose(robotStartPose);
     }
 
+    /**
+     * Reset QuestNav using a robot pose (e.g., from AprilTags or auto start
+     * position)
+     */
+    public void setRobotPose(Pose2d robotPose) {
+        // Convert to Pose3d
+        Pose3d robotPose3d = new Pose3d(
+                robotPose.getX(),
+                robotPose.getY(),
+                0.0,
+                new Rotation3d(0, 0, robotPose.getRotation().getRadians()));
+
+        // Convert robot pose to Quest pose (apply forward transform)
+        Pose3d questPose = robotPose3d.plus(ROBOT_TO_QUEST);
+        questNav.setPose(questPose);
+    }
+
+    /** Deprecated - use setRobotPose() instead */
+    @Deprecated
     public void resetPose(Pose2d pose) {
-        questNav.setPose(new Pose3d(pose));
+        setRobotPose(pose);
     }
 
     @Override
     public void periodic() {
-
         questNav.commandPeriodic();
         PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
-        // Loop over the pose data frames and send them to the pose estimator
+
         for (PoseFrame questFrame : questFrames) {
-            // Make sure the Quest was tracking the pose for this frame
             if (questFrame.isTracking()) {
-                // Get the pose of the Quest
+                // Get Quest pose from sensor
                 Pose3d questPose = questFrame.questPose3d();
-                // Get timestamp for when the data was sent
                 double timestamp = questFrame.dataTimestamp();
 
-                // Transform by the mount pose to get your robot pose
-                robotPose = questPose.plus(ROBOT_TO_QUEST);
-                robotPose = new Pose3d(robotPose.getX(), robotPose.getY(), robotPose.getZ(),
-                        robotPose.getRotation().plus(new Rotation3d(0, 0, -90)));
+                // Convert Quest pose to robot pose (apply INVERSE transform)
+                Pose3d robotPose = questPose.plus(ROBOT_TO_QUEST.inverse());
 
-                Logger.recordOutput("QuestNav23", robotPose.toPose2d());
-                // You can put some sort of filtering here if you would like!
+                // Log for debugging
+                Logger.recordOutput("QuestNav/RobotPose", robotPose.toPose2d());
+                Logger.recordOutput("QuestNav/QuestPose", questPose.toPose2d());
+                Logger.recordOutput("QuestNav/IsTracking", true);
+
+                // Add measurement to pose estimator
                 drive.poseEst(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-                // Add the measurement to our estimator
+            } else {
+                Logger.recordOutput("QuestNav/IsTracking", false);
             }
         }
     }
