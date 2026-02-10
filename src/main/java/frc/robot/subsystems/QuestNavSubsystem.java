@@ -71,7 +71,7 @@ public class QuestNavSubsystem extends SubsystemBase {
 
                 // Transform by the mount pose to get your robot pose
                   robotPose = questPose.transformBy(ROBOT_TO_QUEST);
-                  robotPose = new Pose3d(robotPose.getX(),robotPose.getY(), robotPose.getZ(), robotPose.getRotation().plus(new Rotation3d(0,0, -90)));
+                  robotPose = new Pose3d(robotPose.getX(),-robotPose.getY(), robotPose.getZ(), robotPose.getRotation().plus(new Rotation3d(0,0, -270)));
 
                 Logger.recordOutput("QuestNav23", robotPose.toPose2d());
                 // You can put some sort of filtering here if you would like!
