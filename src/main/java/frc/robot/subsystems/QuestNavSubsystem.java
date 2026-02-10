@@ -27,18 +27,18 @@ public class QuestNavSubsystem extends SubsystemBase {
     private QuestNav questNav;
     public Transform3d ROBOT_TO_QUEST;// = new Transform3d(0.022, 0.152, 0.041, new Rotation3d(new Rotation2d(-90)));
     private DrivetrainSubsystem drive;
-    public Pose3d robotPose; 
+    public Pose3d robotPose;
 
     public QuestNavSubsystem(DrivetrainSubsystem drive) {
 
         this.drive = drive;
         ROBOT_TO_QUEST = new Transform3d(0.022, 0.152, 0.041,
-                new Rotation3d(new Rotation2d(drive.getHeading().getDegrees()).plus(new Rotation2d(-90))));
+                new Rotation3d(new Rotation2d(-90)));
         questNav = new QuestNav();
 
         Pose3d questPose = new Pose3d(0, 0, 0, new Rotation3d(new Rotation2d(0)));
         // Transform by the mount pose to get your robot pose
-          robotPose = questPose.transformBy(ROBOT_TO_QUEST);
+        robotPose = questPose.plus(ROBOT_TO_QUEST);
 
         questNav.setPose(robotPose);
 
@@ -70,8 +70,9 @@ public class QuestNavSubsystem extends SubsystemBase {
                 double timestamp = questFrame.dataTimestamp();
 
                 // Transform by the mount pose to get your robot pose
-                  robotPose = questPose.transformBy(ROBOT_TO_QUEST);
-                  robotPose = new Pose3d(robotPose.getX(),robotPose.getY(), robotPose.getZ(), robotPose.getRotation().plus(new Rotation3d(0,0, -90)));
+                robotPose = questPose.plus(ROBOT_TO_QUEST);
+                robotPose = new Pose3d(robotPose.getX(), robotPose.getY(), robotPose.getZ(),
+                        robotPose.getRotation().plus(new Rotation3d(0, 0, -90)));
 
                 Logger.recordOutput("QuestNav23", robotPose.toPose2d());
                 // You can put some sort of filtering here if you would like!
