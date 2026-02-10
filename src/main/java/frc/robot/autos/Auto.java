@@ -11,19 +11,26 @@ public class Auto {
     private DrivetrainSubsystem drivetrain;
     private AutoFactory autoFactory;
     private AutoRoutine routine;
-    
 
     public Auto(DrivetrainSubsystem drivetrain) {
         this.drivetrain = drivetrain;
+        /*
+         * this.autoFactory = new AutoFactory(
+         * 
+         * drivetrain::getPose,
+         * drivetrain::resetPose,
+         * drivetrain::followTrajectory,
+         * true,
+         * drivetrain
+         * 
+         * );
+         */
         this.autoFactory = new AutoFactory(
-
                 drivetrain::getPose,
                 drivetrain::resetPose,
-                drivetrain::followTrajectory,
-                true,
-                drivetrain
-
-        );
+                drivetrain::followTrajectory, // This needs to exist in your subsystem
+                true, // Set to true if your trajectories are relative to the starting pose
+                drivetrain);
 
     }
 
@@ -43,14 +50,14 @@ public class Auto {
     public Command setAutoRoutine() {
         // return Commands.defer(routine.cmd()::init,routine.cmd()::execute,
         // routine.cmd()::end,(()->routine.cmd()::isFinished)), Set.of(drivetrain));
-        AutoRoutine routine = autoFactory.newRoutine("Test Auto");
-        AutoTrajectory driveToMiddle = routine.trajectory("TestPath");
+     //   AutoRoutine routine = autoFactory.newRoutine("Test Auto");
+       // AutoTrajectory driveToMiddle = routine.trajectory("TestPath");
 
-        routine.active().onTrue(
-                Commands.sequence(
+      //  routine.active().onTrue(
+      //          Commands.sequence(
 
-                        driveToMiddle.resetOdometry(),
-                        driveToMiddle.cmd()));
-        return routine.cmd();
+                     //   driveToMiddle.resetOdometry(),
+                 //       driveToMiddle.cmd()));
+        return  testRoutine().cmd();
     }
 }
