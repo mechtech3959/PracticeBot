@@ -8,7 +8,6 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
-import choreo.auto.AutoRoutine;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -148,7 +147,7 @@ public class RobotContainer {
          * 
          * );
          */
-        return autoChooser.selectedCommandScheduler();
+        return autoChooser.selectedCommand();
 
     }
 }

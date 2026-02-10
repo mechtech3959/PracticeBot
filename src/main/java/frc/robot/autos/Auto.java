@@ -1,5 +1,6 @@
 package frc.robot.autos;
 
+import choreo.Choreo;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
@@ -11,7 +12,7 @@ public class Auto {
     private DrivetrainSubsystem drivetrain;
     private AutoFactory autoFactory;
     private AutoRoutine routine;
-
+    private final Choreo.TrajectoryCache cache;
     public Auto(DrivetrainSubsystem drivetrain) {
         this.drivetrain = drivetrain;
         /*
@@ -24,17 +25,21 @@ public class Auto {
          * drivetrain
          * 
          * );
+         *
          */
+        cache = new Choreo.TrajectoryCache();
+
         this.autoFactory = new AutoFactory(
                 drivetrain::getPose,
                 drivetrain::resetPose,
-                drivetrain::followTrajectory, // This needs to exist in your subsystem
+                drivetrain::stageTrajectory, // This needs to exist in your subsystem
                 true, // Set to true if your trajectories are relative to the starting pose
                 drivetrain);
 
     }
 
     public AutoRoutine testRoutine() {
+        
         AutoRoutine routine = autoFactory.newRoutine("Test Auto");
         AutoTrajectory driveToMiddle = routine.trajectory("TestPath");
 

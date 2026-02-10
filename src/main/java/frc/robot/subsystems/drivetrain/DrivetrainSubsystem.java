@@ -46,7 +46,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private final PIDController autoXController = new PIDController(7, 0, 0);
     private final PIDController autoYController = new PIDController(7, 0, 0);
     private final PIDController autoHeadingController = new PIDController(7, 0, 0);
-    private SwerveSample trajectorySample;
+    private SwerveSample trajectorySample = null;
     private final PIDController autoDriveController = new PIDController(3.0, 0, 0.1);
 
     private SwerveState currentDriveState = SwerveState.TeliOp;
@@ -202,8 +202,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
         // Apply the generated speeds
         // io.trajPath(speeds);
         io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds().withSpeeds(speeds)
-                .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                .withWheelForceFeedforwardsY(sample.moduleForcesY()));
+                .withDriveRequestType(SwerveModule.DriveRequestType.Velocity));
     }
 
     public void teliopDrive() {
@@ -244,7 +243,9 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 brake();
                 break;
             case ChoreoTrajectory:
-                followTrajectory(trajectorySample);
+                if (trajectorySample != null) {
+                    followTrajectory(trajectorySample);
+                }
                 break;
             case TeliOp:
                 teliopDrive();
@@ -271,7 +272,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     public void stageTrajectory(SwerveSample sample) {
-        trajectorySample = sample;
+       this.trajectorySample = sample;
         currentDriveState = SwerveState.ChoreoTrajectory;
     }
 
