@@ -16,25 +16,22 @@ public class Auto {
 
     public Auto(DrivetrainSubsystem drivetrain) {
         this.drivetrain = drivetrain;
-        /*
-         * this.autoFactory = new AutoFactory(
-         * 
-         * drivetrain::getPose,
-         * drivetrain::resetPose,
-         * drivetrain::followTrajectory,
-         * true,
-         * drivetrain
-         * 
-         * );
-         *
-         */
+
+        // Initialize trajectory cache - preloads trajectories at robot startup
+        // This prevents delays when loading trajectories during auto
         cache = new Choreo.TrajectoryCache();
+
+        // Preload all trajectories you'll use in autonomous
+        cache.loadTrajectory("TestPath");
+        // Add more as needed:
+        // cache.loadTrajectory("Path2");
+        // cache.loadTrajectory("Path3");
 
         this.autoFactory = new AutoFactory(
                 drivetrain::getPose,
                 drivetrain::resetPose,
-                drivetrain::stageTrajectory, // This needs to exist in your subsystem
-                true, // Set to true if your trajectories are relative to the starting pose
+                drivetrain::stageTrajectory,
+                true, // Trajectories are relative to starting pose
                 drivetrain);
 
     }
@@ -42,8 +39,12 @@ public class Auto {
     public AutoRoutine testRoutine() {
 
         AutoRoutine routine = autoFactory.newRoutine("Test Auto");
+
+        // The trajectory method will automatically use the cache if the trajectory was
+        // preloaded
+        // Otherwise it loads from disk (which is slower)
         AutoTrajectory driveToMiddle = routine.trajectory("TestPath");
-        
+
         // When the routine becomes active, reset odometry then follow the trajectory
         routine.active().onTrue(
                 Commands.sequence(
