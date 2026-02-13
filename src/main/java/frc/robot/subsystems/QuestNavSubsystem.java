@@ -23,9 +23,13 @@ public class QuestNavSubsystem extends SubsystemBase {
             Math.toRadians(2) // Trust down to 2 degrees rotational
     );
 
+    // Transform from robot center to Quest position
+    // Quest is mounted 90° to the left (counterclockwise from robot forward)
     private static final Transform3d ROBOT_TO_QUEST = new Transform3d(
-            0.022, 0.152, 0.041,
-            new Rotation3d(0, 0, Math.toRadians(-90)) // Quest mounted 90° left
+            0.022, // Forward from robot center (meters)
+            0.152, // Left from robot center (meters)
+            0.041, // Up from robot center (meters)
+            new Rotation3d(0, 0, Math.toRadians(90)) // Quest faces 90° left relative to robot
     );
 
     private QuestNav questNav;
@@ -47,15 +51,15 @@ public class QuestNavSubsystem extends SubsystemBase {
      * position)
      */
     public void setRobotPose(Pose2d robotPose) {
-        // Convert to Pose3d
+        // Convert robot 2D pose to 3D
         Pose3d robotPose3d = new Pose3d(
                 robotPose.getX(),
                 robotPose.getY(),
                 0.0,
                 new Rotation3d(0, 0, robotPose.getRotation().getRadians()));
 
-        // Convert robot pose to Quest pose (apply forward transform)
-        Pose3d questPose = robotPose3d.plus(ROBOT_TO_QUEST);
+        // Transform: Quest pose = Robot pose transformed by ROBOT_TO_QUEST
+        Pose3d questPose = robotPose3d.transformBy(ROBOT_TO_QUEST);
         questNav.setPose(questPose);
     }
 
@@ -72,12 +76,15 @@ public class QuestNavSubsystem extends SubsystemBase {
 
         for (PoseFrame questFrame : questFrames) {
             if (questFrame.isTracking()) {
-                // Get Quest pose from sensor
+                // Get Quest pose from sensor in field frame
                 Pose3d questPose = questFrame.questPose3d();
                 double timestamp = questFrame.dataTimestamp();
 
-                // Convert Quest pose to robot pose (apply INVERSE transform)
-                Pose3d robotPose = questPose.plus(ROBOT_TO_QUEST.inverse());
+                // To get robot pose from Quest pose, we need to subtract the transform
+                // Think: if Quest is offset to the left of robot, robot is offset to the RIGHT
+                // of Quest
+                // So we apply the INVERSE transform
+                Pose3d robotPose = questPose.transformBy(ROBOT_TO_QUEST.inverse());
 
                 // Log for debugging
                 Logger.recordOutput("QuestNav/RobotPose", robotPose.toPose2d());
