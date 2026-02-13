@@ -2,7 +2,6 @@ package frc.robot.subsystems.drivetrain;
 
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix6.Timestamp;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -13,13 +12,13 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.util.BaseCalculator;
 import frc.robot.subsystems.util.FieldBasedConstants;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 
 public class DrivetrainSubsystem extends SubsystemBase {
 
@@ -272,7 +271,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     public void stageTrajectory(SwerveSample sample) {
-       this.trajectorySample = sample;
+        this.trajectorySample = sample;
         currentDriveState = SwerveState.ChoreoTrajectory;
     }
 

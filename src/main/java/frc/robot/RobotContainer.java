@@ -147,7 +147,7 @@ public class RobotContainer {
          * 
          * );
          */
-        return autoChooser.selectedCommand();
+        return autom.testRoutine().cmd();
 
     }
 }
