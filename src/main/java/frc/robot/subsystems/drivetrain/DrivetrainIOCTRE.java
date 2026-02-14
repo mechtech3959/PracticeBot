@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drivetrain;
 
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -16,10 +17,15 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.util.FieldBasedConstants;
 
 // Inspired by FRC 2910 
 public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder> implements DrivetrainIO {
+    private static final double kSimLoopPeriod = 0.004; // 4 ms
+    private Notifier m_simNotifier = null;
+    private double m_lastSimTime;
 
     public DrivetrainIOCTRE(SwerveDrivetrainConstants constants,
             @SuppressWarnings("unchecked") SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>... moduleConstants) {
@@ -27,6 +33,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
         super(TalonFX::new, TalonFX::new, CANcoder::new, constants, moduleConstants);
 
         this.resetRotation(FieldBasedConstants.isBlueAlliance() ? Rotation2d.kZero : Rotation2d.k180deg);
+        if (Utils.isSimulation()) {
+            this.simulationInit();
+            
+            startSimThread();
+        }
 
     }
 
@@ -85,8 +96,44 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
         this.resetPose(Pose);
     }
 
+    private void startSimThread() {
+        m_lastSimTime = Utils.getCurrentTimeSeconds();
+
+        /* Run simulation at a faster rate so PID gains behave more reasonably */
+        m_simNotifier = new Notifier(() -> {
+            final double currentTime = Utils.getCurrentTimeSeconds();
+            double deltaTime = currentTime - m_lastSimTime;
+            m_lastSimTime = currentTime;
+
+            /* use the measured time delta, get battery voltage from WPILib */
+            updateSimState(deltaTime, RobotController.getBatteryVoltage());
+        });
+        m_simNotifier.startPeriodic(kSimLoopPeriod);
+    }
+
     @Override
-    public void setPoseEstValues(Pose2d pose, double timestamp,Matrix<N3,N1> dev) {
-        this.addVisionMeasurement(pose, timestamp,dev);
+    public void setPoseEstValues(Pose2d pose, double timestamp, Matrix<N3, N1> dev) {
+        this.addVisionMeasurement(pose, timestamp, dev);
+    }
+     @Override
+    public void simulationInit() {
+        m_lastSimTime = Utils.getCurrentTimeSeconds();
+
+        /* Run simulation at a faster rate so PID gains behave more reasonably */
+        m_simNotifier = new Notifier(() -> {
+            final double currentTime = Utils.getCurrentTimeSeconds();
+            double deltaTime = currentTime - m_lastSimTime;
+            m_lastSimTime = currentTime;
+
+            /* Use the measured time delta, get battery voltage from WPILib */
+            this.updateSimState(deltaTime, RobotController.getBatteryVoltage());
+        });
+        m_simNotifier.startPeriodic(kSimLoopPeriod);
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        this.updateSimState(kSimLoopPeriod, RobotController.getBatteryVoltage());
+        // This method can be used to add additional simulation code if needed.
     }
 }

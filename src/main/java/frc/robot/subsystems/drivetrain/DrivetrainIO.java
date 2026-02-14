@@ -76,7 +76,7 @@ public interface DrivetrainIO {
     default void setSwerveState(SwerveRequest req) {
     }
 
-    default void setPoseEstValues(Pose2d pose, double timestamp,Matrix<N3,N1> dev) {
+    default void setPoseEstValues(Pose2d pose, double timestamp, Matrix<N3, N1> dev) {
     }
 
     default ChassisSpeeds getRobotRelSpeed() {
@@ -87,6 +87,9 @@ public interface DrivetrainIO {
     };
 
     default void simulationInit() {
+    }
+
+    default void simulationPeriodic() {
     }
 
     default void periodic() {

@@ -41,7 +41,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withHeadingPID(3, 0, 0)
-            .withDriveRequestType(SwerveModule.DriveRequestType.Velocity);
+            .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage);
     private final PIDController autoXController = new PIDController(7, 0, 0);
     private final PIDController autoYController = new PIDController(7, 0, 0);
     private final PIDController autoHeadingController = new PIDController(7, 0, 0);
@@ -63,8 +63,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     private final ModuleIO[] modules = new ModuleIO[4];
 
-    double maxSpeed;
-    double maxAngSpeed;
+    private static final double maxSpeed = 5;
+    private static final double maxAngSpeed = 1.75;
 
     public DrivetrainSubsystem(DrivetrainIO io, CommandXboxController controller) {
         this.io = io;
@@ -80,10 +80,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
         autoHeadingController.enableContinuousInput(-Math.PI, Math.PI);
     }
-    
+
     @Override
     public void periodic() {
-
+        
         io.updateDrivetrainData(swerveInputs);
         Logger.processInputs(getName() + "/Swerve", swerveInputs);
         // teliopDrive();
@@ -117,69 +117,34 @@ public class DrivetrainSubsystem extends SubsystemBase {
         io.setPoseEstValues(pose, time, dev);
     }
 
-    // TODO: Decide what im going to do with this / find out if it works and if it
-    // is worth it to combine code or seperate
     private ChassisSpeeds calculateSpeedsBasedOnJoystickInputs() {
         // was .isEmpty() but threw error for some reason
         if (!DriverStation.getAlliance().isPresent()) {
             return new ChassisSpeeds(0, 0, 0);
         }
-        switch (selectedSpeed) {
-            case Fast:
-                double xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
-                double yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
-                double angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
-                Logger.recordOutput("xMag", xMagnitude);
-                //
-                // xMagnitude = Math.copySign(xMagnitude * xMagnitude, xMagnitude);
-                // yMagnitude = Math.copySign(yMagnitude * yMagnitude, yMagnitude);
-                angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
 
-                double xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * 4.5 : xMagnitude * 4.5)
-                        * 1.0;
-                double yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * 4.5 : yMagnitude * 4.5)
-                        * 1.0;
-                double angularVelocity = angularMagnitude * 1.75 * 1.75;
+        double xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
+        double yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
+        double angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
+        double ramp = 1.1 - controller.getLeftTriggerAxis();
 
-                Rotation2d skewCompensationFactor = Rotation2d
-                        .fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
+        angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
 
-                return ChassisSpeeds.fromRobotRelativeSpeeds(
-                        ChassisSpeeds.fromFieldRelativeSpeeds(
-                                new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity),
-                                swerveInputs.Pose.getRotation()),
-                        swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
+        double xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * maxSpeed : xMagnitude * maxSpeed)
+                * ramp;
+        double yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * maxSpeed : yMagnitude * maxSpeed)
+                * ramp;
+        double angularVelocity = angularMagnitude * maxAngSpeed * ramp;
 
-            case Slow:
-                xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
-                yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
-                angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
-                Logger.recordOutput("xMag", xMagnitude);
-                //
-                // xMagnitude = Math.copySign(xMagnitude * xMagnitude, xMagnitude);
-                // yMagnitude = Math.copySign(yMagnitude * yMagnitude, yMagnitude);
-                angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
+        Rotation2d skewCompensationFactor = Rotation2d
+                .fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
 
-                xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * 2 : xMagnitude * 2)
-                        * 0.8;
-                yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * 2 : yMagnitude * 2)
-                        * 0.8;
-                angularVelocity = angularMagnitude * 1 * 1;
+        return ChassisSpeeds.fromRobotRelativeSpeeds(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity),
+                        swerveInputs.Pose.getRotation()),
+                swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
 
-                skewCompensationFactor = Rotation2d.fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
-
-                return ChassisSpeeds.fromRobotRelativeSpeeds(
-                        ChassisSpeeds.fromFieldRelativeSpeeds(
-                                new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity),
-                                swerveInputs.Pose.getRotation()),
-                        swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
-            case Ramp:
-                return new ChassisSpeeds(0, 0, 0);
-
-            default:
-                return new ChassisSpeeds(0, 0, 0);
-
-        }
     }
 
     private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
@@ -222,6 +187,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void followTrajectory(SwerveSample sample) {
         // Get the current pose of the robot
         Pose2d pose = io.getPose();
+        ChassisSpeeds speed = sample.getChassisSpeeds();
+        speed.vxMetersPerSecond += autoXController.calculate(pose.getX(), sample.x);
+        speed.vyMetersPerSecond += autoYController.calculate(pose.getY(), sample.y);
+        speed.omegaRadiansPerSecond += autoHeadingController.calculate(pose.getRotation().getRadians(), sample.heading);
 
         // Generate the next speeds for the robot
         ChassisSpeeds speeds = new ChassisSpeeds(
@@ -229,9 +198,9 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 sample.vy + autoYController.calculate(pose.getY(), sample.y),
                 sample.omega + autoHeadingController.calculate(pose.getRotation().getRadians(), sample.heading));
 
-        // Apply the generated speeds
-        // io.trajPath(speeds);
-        io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds().withSpeeds(speeds)
+        io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds().withSpeeds(speed)
+                .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                .withWheelForceFeedforwardsY(sample.moduleForcesY())
                 .withDriveRequestType(SwerveModule.DriveRequestType.Velocity));
     }
 
@@ -309,5 +278,29 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public Rotation2d getHeading() {
         return swerveInputs.Pose.getRotation();
     }
- 
+
+    @Override
+     public void simulationPeriodic() {
+        Logger.recordOutput("sim", true);
+        io.simulationPeriodic();
+
+        io.updateDrivetrainData(swerveInputs);
+        Logger.processInputs(getName() + "/Swerve", swerveInputs);
+        // teliopDrive();
+        // headingDrive();
+        applyState();
+
+        modules[0].updateInputs(moduleInputs[0]);
+        modules[1].updateInputs(moduleInputs[1]);
+        modules[2].updateInputs(moduleInputs[2]);
+        modules[3].updateInputs(moduleInputs[3]);
+
+        // Send to dashboard
+        Logger.processInputs("Drive/Module 0", moduleInputs[0]);
+        // Send to dashboard
+        Logger.processInputs("Drive/Module 1", moduleInputs[1]);
+        Logger.processInputs("Drive/Module  2", moduleInputs[2]);
+        // Send to dashboard
+        Logger.processInputs("Drive/Module 3", moduleInputs[3]);
+    }
 }

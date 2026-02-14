@@ -35,6 +35,8 @@ public class Robot extends LoggedRobot {
             Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
             Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
         } else {
+            Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+
             setUseTiming(false); // Run as fast as possible
             String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the
                                                           // user)
@@ -69,7 +71,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
-        
+
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
         if (m_autonomousCommand != null) {

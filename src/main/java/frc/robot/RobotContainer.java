@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.autos.Auto;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.QuestNavSubsystem;
 import frc.robot.subsystems.drivetrain.DrivetrainIOCTRE;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem.SwerveState;
@@ -48,7 +47,7 @@ public class RobotContainer {
 
     // public final CommandSwerveDrivetrain drivetrain =
     // TunerConstants.createDrivetrain();
-    public final QuestNavSubsystem questNav = new QuestNavSubsystem(Drivetrain);
+    // public final QuestNavSubsystem questNav = new QuestNavSubsystem(Drivetrain);
 
     // private final ChassisSpeeds d =
     // drivetrain.calculateSpeedsBasedOnJoystickInputs(joystick);
@@ -63,7 +62,7 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        // Note that X is defined as forward according to WPILib convention,
+         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         /*
          * / drivetrain.setDefaultCommand(
