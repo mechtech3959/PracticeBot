@@ -1,20 +1,26 @@
 package frc.robot.autos;
 
 import choreo.Choreo;
+import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import static frc.robot.generated.ChoreoTraj.TestPath;
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
 
 public class Auto {
     private DrivetrainSubsystem drivetrain;
     private AutoFactory autoFactory;
+    private final AutoChooser autoChooser;
     private final Choreo.TrajectoryCache cache;
 
     public Auto(DrivetrainSubsystem drivetrain) {
+        this.autoChooser = new AutoChooser();
+
         this.drivetrain = drivetrain;
 
         // Initialize trajectory cache - preloads trajectories at robot startup
@@ -36,6 +42,12 @@ public class Auto {
                                                           * drivetrain);
                                                           */
 
+    }
+
+    public void configure() {
+        autoChooser.addRoutine("Test", this::testRoutine);
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+        RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
     }
 
     public AutoRoutine testRoutine() {
