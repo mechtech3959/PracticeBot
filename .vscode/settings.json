@@ -1,7 +1,6 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.server.launchMode": "Standard",
-  "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-25.0.2",
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,

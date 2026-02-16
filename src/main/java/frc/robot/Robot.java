@@ -11,8 +11,6 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-import com.ctre.phoenix6.HootAutoReplay;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -23,9 +21,9 @@ public class Robot extends LoggedRobot {
 
     /* log and replay timestamp and joystick data */
 
-    private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
-            .withTimestampReplay()
-            .withJoystickReplay();
+  ///  private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
+       //     .withTimestampReplay()
+       //     .withJoystickReplay();
 
     public Robot() {
 
@@ -37,7 +35,7 @@ public class Robot extends LoggedRobot {
         } else {
             Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
 
-            setUseTiming(false); // Run as fast as possible
+           // setUseTiming(false); // Run as fast as possible
             String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the
                                                           // user)
             Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
@@ -53,9 +51,9 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void robotPeriodic() {
-        m_timeAndJoystickReplay.update();
+   //     m_timeAndJoystickReplay.update();
         CommandScheduler.getInstance().run();
-    }
+    }   
 
     @Override
     public void disabledInit() {
