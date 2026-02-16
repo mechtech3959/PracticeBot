@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
@@ -48,8 +49,9 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private SwerveSample trajectorySample = null;
     private final PIDController autoDriveController = new PIDController(3.0, 0, 0.1);
 
+    private final SwerveRequest.ApplyFieldSpeeds pathRequest = new SwerveRequest.ApplyFieldSpeeds();
+
     private SwerveState currentDriveState = SwerveState.TeliOp;
-    private OutputMode selectedSpeed = OutputMode.Fast;
     private CommandXboxController controller;
     private DrivetrainIO io = new DrivetrainIO() {
     };
@@ -83,7 +85,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        
+
         io.updateDrivetrainData(swerveInputs);
         Logger.processInputs(getName() + "/Swerve", swerveInputs);
         // teliopDrive();
@@ -110,6 +112,16 @@ public class DrivetrainSubsystem extends SubsystemBase {
          * Logger.processInputs("Drive/Module " + i, moduleInputs[i]);
          * }
          */
+    }
+
+    public AutoFactory makeAutoFactory() {
+        return new AutoFactory(
+                this::getPose,
+                this::resetPose,
+                this::stageTrajectory,
+                true, // Trajectories are relative to starting pose
+                this);
+
     }
 
     public void poseEst(Pose2d pose, double time, Matrix<N3, N1> dev) {
@@ -198,7 +210,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
                 sample.vy + autoYController.calculate(pose.getY(), sample.y),
                 sample.omega + autoHeadingController.calculate(pose.getRotation().getRadians(), sample.heading));
 
-        io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds().withSpeeds(speed)
+        io.setSwerveState(pathRequest.withSpeeds(speed)
                 .withWheelForceFeedforwardsX(sample.moduleForcesX())
                 .withWheelForceFeedforwardsY(sample.moduleForcesY())
                 .withDriveRequestType(SwerveModule.DriveRequestType.Velocity));
@@ -280,7 +292,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     @Override
-     public void simulationPeriodic() {
+    public void simulationPeriodic() {
         Logger.recordOutput("sim", true);
         io.simulationPeriodic();
 
