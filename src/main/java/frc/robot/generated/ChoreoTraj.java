@@ -31,13 +31,29 @@ public record ChoreoTraj(
 	    new Pose2d(-0.091, 0.078, Rotation2d.fromRadians(0)),
 	    new Pose2d(0.552, 0.916, Rotation2d.fromRadians(0))
 	);
+	public static final ChoreoTraj Runner = new ChoreoTraj(
+	    "Runner",
+	    OptionalInt.empty(),
+	    1.5933,
+	    new Pose2d(4.013, 0.736, Rotation2d.fromRadians(0)),
+	    new Pose2d(2.913, 4.033, Rotation2d.fromRadians(3.142))
+	);
+	public static final ChoreoTraj BRB = new ChoreoTraj(
+	    "BRB",
+	    OptionalInt.empty(),
+	    2.92751,
+	    new Pose2d(3.997, 0.562, Rotation2d.fromRadians(0)),
+	    new Pose2d(4.084, 7.425, Rotation2d.fromRadians(0))
+	);
 
     /**
      * A map between trajectory names and their corresponding data.
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-    	Map.entry("TestPath", TestPath)
+    	Map.entry("TestPath", TestPath),
+		Map.entry("Runner", Runner),
+		Map.entry("BRB", BRB)
     );
 
     /**

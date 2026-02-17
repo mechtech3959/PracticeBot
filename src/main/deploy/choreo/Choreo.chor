@@ -44,8 +44,8 @@
    "val":0.0508
   },
   "vmax":{
-   "exp":"6000 RPM",
-   "val":628.3185307179587
+   "exp":"5000 RPM",
+   "val":523.5987755982989
   },
   "tmax":{
    "exp":"1.2 N * m",
@@ -76,7 +76,7 @@
  },
  "generationFeatures":[],
  "codegen":{
-  "root":"..\\java\\frc\\robot\\generated",
+  "root":"..\\..\\java\\frc\\robot\\generated",
   "genVars":true,
   "genTrajData":true,
   "useChoreoLib":true

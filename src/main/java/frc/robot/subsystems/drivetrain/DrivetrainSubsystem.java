@@ -87,7 +87,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void periodic() {
 
         io.updateDrivetrainData(swerveInputs);
-        Logger.processInputs(getName() + "/Swerve", swerveInputs);
+        Logger.processInputs(getName(), swerveInputs);
         // teliopDrive();
         // headingDrive();
         applyState();

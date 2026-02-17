@@ -1,6 +1,7 @@
 plugins {
     id "java" 
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
+        id "net.ltgt.errorprone" version "4.1.0"
 }
 
 java {
@@ -77,11 +78,17 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        errorprone "com.google.errorprone:error_prone_core:2.36.0"
 
      def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
     
 }
+compileJava {
+    options.errorprone.disableWarningsInGeneratedCode = true
+    options.errorprone.excludedPaths = ".*/build/generated/.*"
+}
+
 
 test {
     useJUnitPlatform()

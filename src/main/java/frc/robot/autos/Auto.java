@@ -10,6 +10,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import static frc.robot.generated.ChoreoTraj.TestPath;
+import static frc.robot.generated.ChoreoTraj.BRB;
+
+import static frc.robot.generated.ChoreoTraj.Runner;
+
 import frc.robot.subsystems.drivetrain.DrivetrainSubsystem;
 
 public class Auto {
@@ -28,7 +32,7 @@ public class Auto {
         cache = new Choreo.TrajectoryCache();
 
         // Preload all trajectories you'll use in autonomous
-        cache.loadTrajectory("TestPath");
+        // cache.loadTrajectory("TestPath");
         // Add more as needed:
         // cache.loadTrajectory("Path2");
         // cache.loadTrajectory("Path3");
@@ -51,8 +55,8 @@ public class Auto {
     }
 
     public AutoRoutine testRoutine() {
-        final AutoRoutine routine = autoFactory.newRoutine("test");
-        final AutoTrajectory test = TestPath.asAutoTraj(routine);
+        final AutoRoutine routine = autoFactory.newRoutine("TestPath");
+        final AutoTrajectory test = BRB.asAutoTraj(routine);
 
         // When the routine becomes active, reset odometry then follow the trajectory
         routine.active().onTrue(
