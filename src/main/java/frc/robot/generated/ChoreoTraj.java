@@ -27,23 +27,30 @@ public record ChoreoTraj(
     public static final ChoreoTraj TestPath = new ChoreoTraj(
 	    "TestPath",
 	    OptionalInt.empty(),
-	    0.53655,
+	    0.68476,
 	    new Pose2d(-0.091, 0.078, Rotation2d.fromRadians(0)),
 	    new Pose2d(0.552, 0.916, Rotation2d.fromRadians(0))
 	);
 	public static final ChoreoTraj Runner = new ChoreoTraj(
 	    "Runner",
 	    OptionalInt.empty(),
-	    1.5933,
+	    1.67213,
 	    new Pose2d(4.013, 0.736, Rotation2d.fromRadians(0)),
 	    new Pose2d(2.913, 4.033, Rotation2d.fromRadians(3.142))
 	);
 	public static final ChoreoTraj BRB = new ChoreoTraj(
 	    "BRB",
 	    OptionalInt.empty(),
-	    2.92751,
+	    3.03725,
 	    new Pose2d(3.997, 0.562, Rotation2d.fromRadians(0)),
 	    new Pose2d(4.084, 7.425, Rotation2d.fromRadians(0))
+	);
+	public static final ChoreoTraj climb = new ChoreoTraj(
+	    "climb",
+	    OptionalInt.empty(),
+	    0.88133,
+	    new Pose2d(3, 4.17, Rotation2d.fromRadians(3.142)),
+	    new Pose2d(1.25, 4.17, Rotation2d.fromRadians(3.142))
 	);
 
     /**
@@ -53,7 +60,8 @@ public record ChoreoTraj(
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
     	Map.entry("TestPath", TestPath),
 		Map.entry("Runner", Runner),
-		Map.entry("BRB", BRB)
+		Map.entry("BRB", BRB),
+		Map.entry("climb", climb)
     );
 
     /**
