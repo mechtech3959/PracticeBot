@@ -18,6 +18,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.util.BaseCalculator;
 import frc.robot.subsystems.util.FieldBasedConstants;
 
@@ -66,9 +67,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private final ModuleIO[] modules = new ModuleIO[4];
 
     private static final double maxSpeed = 5;
-    private static final double maxAngSpeed = 1.75;
+    private static final double maxAngSpeed = 2.75;
 
     public DrivetrainSubsystem(DrivetrainIO io, CommandXboxController controller) {
+        
         this.io = io;
         this.controller = controller;
 

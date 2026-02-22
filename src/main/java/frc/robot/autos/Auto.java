@@ -10,6 +10,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import static frc.robot.generated.ChoreoTraj.TestPath;
+import static frc.robot.generated.ChoreoTraj.climb;
+
+import org.littletonrobotics.junction.Logger;
+
 import static frc.robot.generated.ChoreoTraj.BRB;
 
 import static frc.robot.generated.ChoreoTraj.Runner;
@@ -57,12 +61,13 @@ public class Auto {
     public AutoRoutine testRoutine() {
         final AutoRoutine routine = autoFactory.newRoutine("TestPath");
         final AutoTrajectory test = BRB.asAutoTraj(routine);
+       Logger.recordOutput("Auto", test.getRawTrajectory().getPoses());
 
         // When the routine becomes active, reset odometry then follow the trajectory
         routine.active().onTrue(
                 Commands.sequence(
                         Commands.print("Started the routine!"),
-                        test.resetOdometry(), // Reset pose to trajectory start
+                     //   test.resetOdometry(), // Reset pose to trajectory start
                         test.cmd() // Follow the trajectory
                 ));
 
