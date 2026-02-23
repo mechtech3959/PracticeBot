@@ -113,7 +113,7 @@ public class RobotContainer {
             Drivetrain.changeState(SwerveState.Brake);
         }));
         joystick.y().onChange(Commands.runOnce(() -> {
-            Drivetrain.changeState(SwerveState.Slow);
+            Drivetrain.changeState(SwerveState.VisionHeading);
         }));
 
         // Drivetrain.teliopDrive();

@@ -29,17 +29,13 @@ public class DrivetrainSubsystem extends SubsystemBase {
         Brake,
         ChoreoTrajectory,
         TeliOp,
-        Slow,
+  
         Heading,
         VisionHeading,
 
     }
 
-    public enum OutputMode {
-        Fast,
-        Slow,
-        Ramp
-    }
+
 
     private final SwerveRequest.FieldCentricFacingAngle headingDrive = new SwerveRequest.FieldCentricFacingAngle()
             .withHeadingPID(3, 0, 0)
@@ -70,7 +66,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private static final double maxAngSpeed = 2.75;
 
     public DrivetrainSubsystem(DrivetrainIO io, CommandXboxController controller) {
-        
+
         this.io = io;
         this.controller = controller;
 
@@ -90,30 +86,16 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
         io.updateDrivetrainData(swerveInputs);
         Logger.processInputs(getName(), swerveInputs);
-        // teliopDrive();
-        // headingDrive();
+
         applyState();
 
-        modules[0].updateInputs(moduleInputs[0]);
-        modules[1].updateInputs(moduleInputs[1]);
-        modules[2].updateInputs(moduleInputs[2]);
-        modules[3].updateInputs(moduleInputs[3]);
+        for (int i = 0; i < 4; i++) {
+            // Read fresh data from hardware
+            modules[i].updateInputs(moduleInputs[i]);
+            // Send to dashboard
+            Logger.processInputs("Drive/Module " + i, moduleInputs[i]);
+        }
 
-        // Send to dashboard
-        Logger.processInputs("Drive/Module 0", moduleInputs[0]);
-        // Send to dashboard
-        Logger.processInputs("Drive/Module 1", moduleInputs[1]);
-        Logger.processInputs("Drive/Module  2", moduleInputs[2]);
-        // Send to dashboard
-        Logger.processInputs("Drive/Module 3", moduleInputs[3]);
-        /*
-         * for (int i = 0; i < 4; i++) {
-         * // Read fresh data from hardware
-         * modules[i].updateInputs(moduleInputs[i]);
-         * // Send to dashboard
-         * Logger.processInputs("Drive/Module " + i, moduleInputs[i]);
-         * }
-         */
     }
 
     public AutoFactory makeAutoFactory() {
@@ -151,7 +133,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
         double angularVelocity = angularMagnitude * maxAngSpeed * ramp;
 
         Rotation2d skewCompensationFactor = Rotation2d
-                .fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
+                .fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.02);
 
         return ChassisSpeeds.fromRobotRelativeSpeeds(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -161,35 +143,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     }
 
-    private ChassisSpeeds slowcalculateSpeedsBasedOnJoystickInputs() {
-        // was .isEmpty() but threw error for some reason
-        if (!DriverStation.getAlliance().isPresent()) {
-            return new ChassisSpeeds(0, 0, 0);
-        }
-
-        double xMagnitude = MathUtil.applyDeadband(controller.getLeftY(), 0.1);
-        double yMagnitude = MathUtil.applyDeadband(controller.getLeftX(), 0.1);
-        double angularMagnitude = MathUtil.applyDeadband(controller.getRightX(), 0.1);
-        Logger.recordOutput("xMag", xMagnitude);
-        //
-        // xMagnitude = Math.copySign(xMagnitude * xMagnitude, xMagnitude);
-        // yMagnitude = Math.copySign(yMagnitude * yMagnitude, yMagnitude);
-        angularMagnitude = Math.copySign(angularMagnitude * angularMagnitude, angularMagnitude);
-
-        double xVelocity = (FieldBasedConstants.isBlueAlliance() ? -xMagnitude * 2 : xMagnitude * 2)
-                * 0.8;
-        double yVelocity = (FieldBasedConstants.isBlueAlliance() ? -yMagnitude * 2 : yMagnitude * 2)
-                * 0.8;
-        double angularVelocity = angularMagnitude * 1 * 1;
-
-        Rotation2d skewCompensationFactor = Rotation2d.fromRadians(swerveInputs.Speeds.omegaRadiansPerSecond * -0.03);
-
-        return ChassisSpeeds.fromRobotRelativeSpeeds(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                        new ChassisSpeeds(xVelocity, yVelocity, -angularVelocity), swerveInputs.Pose.getRotation()),
-                swerveInputs.Pose.getRotation().plus(skewCompensationFactor));
-    }
-
+ 
     public Pose2d getPose() {
         return io.getPose();
     }
@@ -238,44 +192,26 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     }
 
-    public void slowDrive() {
-        io.setSwerveState(new SwerveRequest.ApplyFieldSpeeds()
-                .withSpeeds(slowcalculateSpeedsBasedOnJoystickInputs())
-                .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage));
-    }
-
+   
     public void visionHeadingDrive() {
     }
 
     public void applyState() {
         switch (currentDriveState) {
-            case Disabled:
-                disable();
-                break;
-            case Brake:
-                brake();
-                break;
-            case ChoreoTrajectory:
+            case Disabled -> disable();
+            case Brake -> brake();
+            case ChoreoTrajectory -> {
                 if (trajectorySample != null) {
                     followTrajectory(trajectorySample);
                 }
-                break;
-            case TeliOp:
-                teliopDrive();
-                break;
-            case Slow:
-                slowDrive();
-                break;
-            case Heading:
-                headingDrive();
-                break;
-            case VisionHeading:
-                visionHeadingDrive();
-                break;
+            }
+            case TeliOp -> teliopDrive();
+    
+            case Heading -> headingDrive();
+            case VisionHeading -> visionHeadingDrive();
 
-            default:
-
-                break;
+            default -> {
+            }
         }
 
     }
@@ -293,28 +229,5 @@ public class DrivetrainSubsystem extends SubsystemBase {
         return swerveInputs.Pose.getRotation();
     }
 
-    @Override
-    public void simulationPeriodic() {
-        Logger.recordOutput("sim", true);
-        io.simulationPeriodic();
-
-        io.updateDrivetrainData(swerveInputs);
-        Logger.processInputs(getName() + "/Swerve", swerveInputs);
-        // teliopDrive();
-        // headingDrive();
-        applyState();
-
-        modules[0].updateInputs(moduleInputs[0]);
-        modules[1].updateInputs(moduleInputs[1]);
-        modules[2].updateInputs(moduleInputs[2]);
-        modules[3].updateInputs(moduleInputs[3]);
-
-        // Send to dashboard
-        Logger.processInputs("Drive/Module 0", moduleInputs[0]);
-        // Send to dashboard
-        Logger.processInputs("Drive/Module 1", moduleInputs[1]);
-        Logger.processInputs("Drive/Module  2", moduleInputs[2]);
-        // Send to dashboard
-        Logger.processInputs("Drive/Module 3", moduleInputs[3]);
-    }
+   
 }
